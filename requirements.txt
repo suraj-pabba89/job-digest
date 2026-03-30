@@ -1,0 +1,10 @@
+# Core
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+python-dotenv>=1.0.0
+
+# AI fit-reason generation (optional but recommended)
+anthropic>=0.34.0
+
+# HTML parsing speed boost
+lxml>=5.0.0
