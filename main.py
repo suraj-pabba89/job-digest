@@ -85,6 +85,38 @@ def run_scrapers() -> List[Job]:
     return all_jobs
 
 
+_USA_TERMS = {
+    "united states", "usa", "u.s.", "u.s.a", "us only",
+    "remote", "remote us", "remote (us)", "remote - us",
+    # states
+    "alabama", "alaska", "arizona", "arkansas", "california", "colorado",
+    "connecticut", "delaware", "florida", "georgia", "hawaii", "idaho",
+    "illinois", "indiana", "iowa", "kansas", "kentucky", "louisiana",
+    "maine", "maryland", "massachusetts", "michigan", "minnesota",
+    "mississippi", "missouri", "montana", "nebraska", "nevada",
+    "new hampshire", "new jersey", "new mexico", "new york", "north carolina",
+    "north dakota", "ohio", "oklahoma", "oregon", "pennsylvania",
+    "rhode island", "south carolina", "south dakota", "tennessee", "texas",
+    "utah", "vermont", "virginia", "washington", "west virginia",
+    "wisconsin", "wyoming", "washington dc", "washington, dc", "d.c.",
+    # common US cities
+    "san francisco", "new york", "los angeles", "chicago", "seattle",
+    "austin", "boston", "denver", "atlanta", "miami", "dallas",
+    "houston", "phoenix", "portland", "san jose", "san diego",
+    "new york city", "nyc", "sf", "bay area", "silicon valley",
+}
+
+
+def _filter_usa(jobs: List[Job]) -> List[Job]:
+    """Keep only jobs with a US location (or no location specified)."""
+    result = []
+    for job in jobs:
+        loc = job.location.lower().strip()
+        if not loc or any(term in loc for term in _USA_TERMS):
+            result.append(job)
+    return result
+
+
 def main(dry_run: bool = False, save_html: str = "") -> None:
     logger.info("=" * 60)
     logger.info("FDE Job Digest — %s", date.today())
@@ -112,7 +144,22 @@ def main(dry_run: bool = False, save_html: str = "") -> None:
     except Exception as exc:
         logger.warning("Fit-reason generation failed: %s", exc)
 
-    # ── 4. Render HTML and send ───────────────────────────────────────────
+    # ── 4. Filter to USA only and keep top 10 ────────────────────────────
+    jobs = _filter_usa(jobs)
+    logger.info("After USA filter: %d jobs", len(jobs))
+    seen_companies: Dict[str, int] = {}
+    top10 = []
+    for job in sorted(jobs, key=lambda j: j.fit_score, reverse=True):
+        company_key = job.company.lower().strip()
+        if seen_companies.get(company_key, 0) < 1:
+            top10.append(job)
+            seen_companies[company_key] = seen_companies.get(company_key, 0) + 1
+        if len(top10) == 10:
+            break
+    jobs = top10
+    logger.info("Top 10 jobs selected (1 per company).")
+
+    # ── 5. Render HTML and send ───────────────────────────────────────────
     logger.info("Step 4/4 — Rendering email and sending…")
     html = render_email(jobs)
 

@@ -9,6 +9,7 @@ from datetime import date
 from typing import List
 
 from scrapers.base import Job
+from config import TO_EMAIL
 
 
 def render_email(jobs: List[Job]) -> str:
@@ -200,7 +201,7 @@ def render_email(jobs: List[Job]) -> str:
 
     <!-- Footer -->
     <div class="footer">
-      <p>Sent daily to <strong>suraj.pabba89@gmail.com</strong> &middot;
+      <p>Sent daily to <strong>{TO_EMAIL}</strong> &middot;
          Sources: LinkedIn · Greenhouse · Lever · Ashby · Indeed · Wellfound · Adzuna</p>
       <p style="margin-top:6px;">
         To stop receiving these, disable the cron job:

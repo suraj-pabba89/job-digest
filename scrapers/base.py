@@ -19,6 +19,7 @@ class Job:
     funding_stage: str = ""              # filled by enrichment layer
     funding_amount: str = ""
     fit_reason: str = ""                 # filled by AI layer
+    fit_score: int = 0                   # 1-10 relevance score from AI layer
     posted_date: str = ""
 
     @property

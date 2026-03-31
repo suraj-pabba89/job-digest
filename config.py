@@ -2,6 +2,7 @@
 config.py — Central configuration and resume placeholder.
 Replace RESUME with your actual resume text before running.
 """
+import os
 
 # ─────────────────────────────────────────────────────────
 # RESUME PLACEHOLDER — paste your resume as plain text here
@@ -75,8 +76,8 @@ SEARCH_QUERY_VARIANTS = [
 # Job posted within this many days (used where supported)
 MAX_AGE_DAYS = 1
 
-# Recipient email
-TO_EMAIL = "suraj.pabba89@gmail.com"
+# Recipient email (falls back to sender address if TO_EMAIL not set)
+TO_EMAIL = os.getenv("TO_EMAIL") or os.getenv("GMAIL_ADDRESS", "")
 EMAIL_SUBJECT = "🚀 Daily Forward Deployed Engineer Job Digest"
 
 # ─────────────────────────────────────────────────────────

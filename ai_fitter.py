@@ -92,13 +92,15 @@ def _generate_with_claude(jobs: List[Job], api_key: str) -> List[Job]:
             prompt = _build_prompt(job)
             message = client.messages.create(
                 model="claude-haiku-4-5-20251001",
-                max_tokens=120,
+                max_tokens=150,
                 messages=[{"role": "user", "content": prompt}],
             )
-            job.fit_reason = message.content[0].text.strip().strip('"')
+            raw = message.content[0].text.strip()
+            job.fit_reason, job.fit_score = _parse_response(raw)
         except Exception as exc:
             logger.warning("Claude error for %s @ %s: %s", job.title, job.company, exc)
             job.fit_reason = _rule_based_reason(job)
+            job.fit_score = 5
 
     return jobs
 
@@ -125,7 +127,19 @@ TASK:
 Write exactly ONE sentence (first-person, ≤ 25 words) explaining why Suraj is a strong fit.
 Match his most relevant experience to what this specific company does.
 Be concrete — name a specific past role or achievement. Do not be generic.
-Return only the sentence, no quotes, no labels."""
+Then on a new line write: SCORE: <integer 1-10> where 10 = perfect match for Suraj's background.
+Return only the sentence and the score line, nothing else."""
+
+
+def _parse_response(raw: str) -> tuple[str, int]:
+    """Splits Claude's response into (fit_reason, fit_score)."""
+    score = 5
+    reason = raw
+    match = re.search(r"SCORE:\s*(\d+)", raw, re.IGNORECASE)
+    if match:
+        score = max(1, min(10, int(match.group(1))))
+        reason = raw[:match.start()].strip().strip('"')
+    return reason, score
 
 
 # ── Rule-based fallback ───────────────────────────────────────────────────────
@@ -133,6 +147,7 @@ Return only the sentence, no quotes, no labels."""
 def _generate_rule_based(jobs: List[Job]) -> List[Job]:
     for job in jobs:
         job.fit_reason = _rule_based_reason(job)
+        job.fit_score = 5
     return jobs
 
 

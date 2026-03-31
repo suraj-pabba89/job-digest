@@ -40,7 +40,7 @@ job-digest/
 ### 1 — Clone / enter the directory
 
 ```bash
-cd /Users/surajpabba/Documents/projects/job-digest
+cd job-digest
 ```
 
 ### 2 — Create a virtual environment
